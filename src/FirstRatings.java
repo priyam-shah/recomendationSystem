@@ -6,6 +6,7 @@ public class FirstRatings {
 	
 //	process every record from the CSV file
 //	and return an ArrayList of type Movie with all of the movie datafrom the file.
+	
 	public  ArrayList<Movie> loadMovies(String filename){
 		
 		ArrayList<Movie> list = new ArrayList<Movie>();
@@ -19,7 +20,7 @@ public class FirstRatings {
 					rec.get("poster"), Integer.parseInt(rec.get("minutes")));
 			list.add(m);
 		}
-//		
+		
 		return list;
 	}
 	
@@ -29,8 +30,6 @@ public class FirstRatings {
 		
 		ArrayList<Movie> movieList = loadMovies(filename);
 		System.out.println(filename.substring(5) +" has " + movieList.size() + " movies");
-		
-
 		
 		int genreCount = 0, minuteCount = 0;
 		String genre = "Comedy";
@@ -51,13 +50,15 @@ public class FirstRatings {
 				map.put(m.getDirector(), 1);
 		}
 		
-		System.out.println(genreCount + " " + minuteCount);
+		System.out.println(genreCount + " movies has " + genre);
+		System.out.println(minuteCount + " movies are greater than " + minute + " minutes");
 		
 		// stores maximum elements max(collection) returns max ele
 		int maxValue = Collections.max(map.values());
 		
 		//entry set simply returns all element of the HashMap
 		Iterator it = map.entrySet().iterator();
+		
 		while (it.hasNext()) {
 			Map.Entry pair = (Map.Entry)it.next();
 			if (pair.getValue().equals(maxValue))
@@ -72,30 +73,35 @@ public class FirstRatings {
 		FileResource fr = new FileResource(filename);
 		CSVParser parser = fr.getCSVParser();
 		
+		int index = 0;
 		
 		for (CSVRecord rec : parser) {
-			
-			String rater_id = rec.get("rater_id");
-			String movie_id = rec.get("movie_id");
-			double rating = Double.parseDouble(rec.get("rating"));
-		
-			int count = 0;
-			for (Rater r: list) {
-				if (r.getID().contains(rater_id)) {
-					
-					r.addRating(movie_id, rating);
-					count ++;
-					break;
-				}
+
+			if (index == 0) {
+				Rater r = new EfficientRater(rec.get("rater_id"));
+				r.addRating(rec.get("movie_id"), Integer.parseInt(rec.get("rating")));
+				list.add(index, r);
+				index ++;
 			}
 			
-			if (count == 0) {
-				Rater r = new Rater(rater_id);
-				r.addRating(movie_id, rating);
-				list.add(r);
+			else if(list.get(index-1).getID().equals(rec.get("rater_id"))) {
+				list.get(index-1).addRating(rec.get("movie_id"), Integer.parseInt(rec.get("rating")));
 			}
+			
+			else {
+				Rater r = new EfficientRater(rec.get("rater_id"));
+				r.addRating(rec.get("movie_id"), Integer.parseInt(rec.get("rating")));
+				list.add(index, r);
+				index++;
+			}
+			
 		}
+		
 		return list;
+	}
+	
+	public int numRatings(Rater r) {
+		return r.numRatings();
 	}
 	
 	public void testLoadRaters() {
@@ -108,7 +114,7 @@ public class FirstRatings {
 		String raterID = "193";
 		String movieID = "1798709";
 		
-		HashMap<String, Integer> map = new HashMap<>();
+		HashMap<String, Integer> map = new HashMap<String, Integer>();
 		
 		int raterCount = 0;
 		
@@ -141,6 +147,7 @@ public class FirstRatings {
 			
 			int maxValue = Collections.max(map.values());
 			Iterator it = map.entrySet().iterator();
+			
 			while (it.hasNext()) {
 				Map.Entry pair = (Map.Entry)it.next();
 				if(pair.getValue().equals(maxValue)) {
